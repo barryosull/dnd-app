@@ -1,6 +1,4 @@
 
-let currImageIndex = 0;
-
 const locations = [
     'transitions/title.jpeg',
     'maps/world.jpg',
@@ -21,7 +19,7 @@ const locations = [
 const players = [
     'characters/fighter.png',
     'characters/wizard.png',
-    'characters/dwarf.png',
+    'characters/cleric.png',
 ];
 
 const music = {
@@ -31,256 +29,276 @@ const music = {
     combat: ['8Q7cioftmKs', 'H8n7K3jABhI', 'fq8OSrIUST4'],
 };
 
-const npcs = [];
+const Controller = new (function() {
+    ///////////////////////////////////
+    // Methods
+    ///////////////////////////////////
+    this.prepareAreaControls = function() {
+        let selectElem = document.getElementById('area');
+        for (var i in locations) {
+            const imageTitle = locations[i].split('.')[0];
+            const optionHtml = '<option value="' + i + '">' + imageTitle + '</option>';
+            selectElem.innerHTML += optionHtml;
+        }
 
-function imageForward() {
-    const nextImageIndex = currImageIndex + 1;
-    if (!locations[nextImageIndex]) {
-        return;
+        selectElem.onchange = function() {
+            Renderer.changeImage(parseInt(this.value));
+        }
     }
-    changeImage(nextImageIndex);
-}
 
-function imageBackward() {
-    const nextImageIndex = currImageIndex - 1;
-    if (!locations[nextImageIndex]) {
-        return;
+    this.prepareMusicControls = function() {
+        let selectElem = document.getElementById('music-controls');
+        for (var key in music) {
+            const optionHtml = '<option value="' + key + '">' + key + '</option>';
+            selectElem.innerHTML += optionHtml;
+        }
+        selectElem.onchange = function() {
+            Controller.playMusic(music[this.value]);
+        }
     }
-    changeImage(nextImageIndex);
-}
 
-function changeImage(imageIndex) {
-    let selectElem = document.getElementById('area');
-    selectElem.value = imageIndex;
+    this.prepareKeyboardShortcuts = function() {
+        function keyDown(e) {
+            e = e || window.event;
 
-    currImageIndex = imageIndex;
-    const image = locations[imageIndex];
+            if (e.key === 'p') {
+                Actions.populatePlayers();
+            }
+            if (e.key === 'g') {
+                Actions.addGoblin();
+            }
+            if (e.key === 'b') {
+                Actions.addBugbear();
+            }
+            if (e.key === 's') {
+                Actions.addSildar();
+            }
+            if (e.key === 'w') {
+                Actions.addWolf();
+            }
+            if (e.key === 'c') {
+                Actions.clearNpcs();
+            }
+            if (e.key === 'h') {
+                Actions.hurtSelected();
+            }
+            if (e.key === 'd') {
+                Actions.killSelected();
+            }
+
+            if (e.code === 'ArrowLeft') {
+                Renderer.imageBackward();
+            }
+            if (e.code === 'ArrowRight') {
+                Renderer.imageForward();
+            }
+        }
+        document.onkeydown = keyDown;
+    }
+
+
+    let characterId = 0;
+
+    this.addCharacter = function (image, type, batchSize, batchPosition) {
+
+        batchSize = batchSize ?? 1;
+        batchPosition = batchPosition ?? 0;
+
+        const charactersElem = document.getElementById('characters');
+
+        ++characterId;
+
+        const characterElem = document.createElement("img");
+        characterElem.id = 'character_' + characterId;
+        characterElem.className = "character "+type;
+        characterElem.src = 'images/characters/' + image;
+
+        const startX = ((batchSize-1)/2) * -80;
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const offsetX = batchPosition * 80;
+        characterElem.style.left = (startX + (centerX - 35) + offsetX) + 'px';
+        characterElem.style.top = (centerY - 35) + 'px';
+
+        charactersElem.appendChild(characterElem);
+
+        this.makeSelectable(characterElem);
+        this.makeDraggable(characterElem);
+
+        return characterElem;
+    }
+
+    this.makeCharactersDeselectable = function() {
+        document.addEventListener("click", deselectCharacters);
+    }
+
+
+    function dragstartHandler(ev) {
+        //ev.dataTransfer.setData("text/plain", ev.target.id);
+    }
+
+    this.makeSelectable = function(characterElem) {
+        characterElem.addEventListener("click", function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            characterElem.classList.add("selected");
+        });
+    }
+
+    function deselectCharacters() {
+        Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
+            characterElem.classList.remove("selected");
+        });
+    }
+
+    let topCharacterZIndex = 1;
+    this.makeDraggable = function(characterElem) {
+
+        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+        const startDragging = function (e) {
+            deselectCharacters();
+            e.preventDefault();
+            e.stopPropagation();
+            characterElem.classList.add("selected");
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = stopDragging;
+            document.onmousemove = dragElement;
+            topCharacterZIndex++;
+            characterElem.style['z-index'] = topCharacterZIndex;
+        }
+
+        const dragElement = function (e) {
+            e.preventDefault();
+            // calculate the new cursor position:
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            characterElem.style.left = (characterElem.offsetLeft - pos1) + "px";
+            characterElem.style.top = (characterElem.offsetTop - pos2) + "px";
+        }
+
+        const stopDragging = function () {
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+
+        characterElem.addEventListener("mousedown", startDragging);
+    }
+
+    this.boot = function() {
+        this.prepareAreaControls();
+        this.prepareKeyboardShortcuts();
+        this.prepareMusicControls();
+        this.makeCharactersDeselectable();
+        Renderer.preloadImages();
+        Renderer.changeImage(0);
+    }
+
+    ///////////////////////////////////
+    // Boot
+    ///////////////////////////////////
+})();
+
+const Renderer = new (function() {
+
+    let currImageIndex = 0;
+
+    this.imageForward = function() {
+        const nextImageIndex = currImageIndex + 1;
+        if (!locations[nextImageIndex]) {
+            return;
+        }
+        this.changeImage(nextImageIndex);
+    };
+
+    this.imageBackward = function() {
+        const nextImageIndex = currImageIndex - 1;
+        if (!locations[nextImageIndex]) {
+            return;
+        }
+        this.changeImage(nextImageIndex);
+    };
+
     const backgroundElem = document.getElementById('background');
-    const imageElem = document.getElementById('image');
+    const locationElem = document.getElementById('location');
 
-    backgroundElem.style['background-image'] = 'url("images/' + image + ' ")';
-    imageElem.style['background-image'] = 'url("images/maps/grid.png"), url("images/' + image + ' ")';
-}
+    this.changeImage = function(imageIndex) {
+        let selectElem = document.getElementById('area');
+        selectElem.value = imageIndex;
 
-var preloadedImages = new Array()
-function preloadImages() {
-    for (var i in locations) {
-        preloadedImages[i] = new Image();
-        preloadedImages[i].src = 'images/' + locations[i];
+        currImageIndex = imageIndex;
+        const image = locations[imageIndex];
+
+
+        backgroundElem.style['background-image'] = 'url("images/' + image + ' ")';
+        locationElem.style['background-image'] = 'url("images/' + image + ' ")';
+    };
+
+    let preloadedImages = [];
+
+    this.preloadImages = function() {
+        locations.forEach((location, i) => {
+            preloadedImages[i] = new Image();
+            preloadedImages[i].src = 'images/' + location;
+        });
     }
-}
+})();
 
-function prepareAreaControls() {
-    let selectElem = document.getElementById('area');
-    for (var i in locations) {
-        const imageTitle = locations[i].split('.')[0];
-        const optionHtml = '<option value="' + i + '">' + imageTitle + '</option>';
-        selectElem.innerHTML += optionHtml;
+const Actions = new (function(){
+
+    const npcs = [];
+
+    this.populatePlayers = function() {
+        players.forEach((player, i) =>  Controller.addCharacter(player, 'player', players.length, i));
+    };
+
+    this.addGoblin = function() {
+        const goblin = Controller.addCharacter('goblin.png', 'enemy');
+        npcs.push(goblin);
     }
 
-    selectElem.onchange = function() {
-        changeImage(parseInt(this.value));
+    this.addBugbear = function() {
+        const bugbear = Controller.addCharacter('bugbear.png', 'enemy');
+        npcs.push(bugbear);
     }
-}
 
-function prepareMusicControls() {
-    let selectElem = document.getElementById('music-controls');
-    for (var key in music) {
-        const optionHtml = '<option value="' + key + '">' + key + '</option>';
-        selectElem.innerHTML += optionHtml;
+    this.addWolf = function() {
+        const wolf = Controller.addCharacter('wolf.png', 'enemy');
+        npcs.push(wolf);
     }
-    selectElem.onchange = function() {
-        playMusic(music[this.value]);
+
+    this.addSildar = function() {
+        const sildar = Controller.addCharacter('sildar.png', 'npc');
+        npcs.push(sildar);
     }
-}
 
-function prepareKeyboardShortcuts() {
-    document.onkeydown = function (e) {
-        e = e || window.event;
+    this.clearNpcs = function() {
+        npcs.forEach(npc => npc.remove());
+    }
 
-        if (e.key == 'p') {
-            populatePlayers();
+    this.hurtSelected = function() {
+        Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
+            characterElem.classList.add("hurt");
+        });
+    }
+
+    this.killSelected = function() {
+        Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
+            characterElem.classList.remove("hurt");
+            characterElem.classList.add("dead");
+        });
+    }
+
+    this.playMusic = function(youtubeId) {
+        if (Array.isArray(youtubeId)) {
+            youtubeId = youtubeId[Math.floor(Math.random() * youtubeId.length)];
         }
-        if (e.key == 'g') {
-            addGoblin();
-        }
-        if (e.key == 'b') {
-            addBugbear();
-        }
-        if (e.key == 's') {
-            addSildar();
-        }
-        if (e.key == 'w') {
-            addWolf();
-        }
-        if (e.key == 'c') {
-            clearNpcs();
-        }
-        if (e.key == 'h') {
-            hurtSelected();
-        }
-        if (e.key == 'd') {
-            killSelected();
-        }
-
-        if (e.code == 'ArrowLeft') {
-            imageBackward();
-        }
-        if (e.code == 'ArrowRight') {
-            imageForward();
-        }
-    }
-}
-
-function dragstartHandler(ev) {
-    ev.dataTransfer.setData("text/plain", ev.target.id);
-}
-
-function populatePlayers() {
-
-    for (var i in players) {
-        drawCharacter(players[i], 'player', players.length, i);
-    }
-}
-
-function addGoblin() {
-    const goblin = drawCharacter('goblin.png', 'enemy');
-    npcs.push(goblin);
-    return "OK";
-}
-
-function addBugbear() {
-    const bugbear = drawCharacter('bugbear.png', 'enemy');
-    npcs.push(bugbear);
-}
-
-function addWolf() {
-    const wolf = drawCharacter('wolf.png', 'enemy');
-    npcs.push(wolf);
-}
-
-function addSildar() {
-    const sildar = drawCharacter('sildar.png', 'npc');
-    npcs.push(sildar);
-}
-
-function clearNpcs() {
-    for (var i in npcs) {
-        npcs[i].remove();
-    }
-}
-
-characterId = 0;
-function drawCharacter(image, type, batchSize, batchPosition) {
-
-    batchSize = batchSize ?? 1;
-    batchPosition = batchPosition ?? 0;
-
-    const charactersElem = document.getElementById('characters');
-
-    ++characterId;
-
-    const characterElem = document.createElement("img");
-    characterElem.id = 'character_' + characterId;
-    characterElem.className = "character "+type;
-    characterElem.src = 'images/' + image;
-
-    const startX = ((batchSize-1)/2) * -80;
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    const offsetX = batchPosition * 80;
-    characterElem.style.left = (startX + (centerX - 35) + offsetX) + 'px';
-    characterElem.style.top = (centerY - 35) + 'px';
-
-    charactersElem.appendChild(characterElem);
-
-    makeSelectable(characterElem);
-    makeDraggable(characterElem);
-
-    return characterElem;
-}
-
-function makeSelectable(characterElem) {
-    characterElem.addEventListener("click", function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        characterElem.classList.add("selected");
-    });
-}
-
-function makeCharactersDeselectable() {
-    document.addEventListener("click", deselectCharacters);
-}
-
-function deselectCharacters() {
-    Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
-        characterElem.classList.remove("selected");
-    });
-}
-
-var topCharacterZIndex = 1;
-function makeDraggable(characterElem) {
-
-    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-
-    const startDragging = function(e) {
-        deselectCharacters();
-        e.preventDefault();
-        e.stopPropagation();
-        characterElem.classList.add("selected");
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = stopDragging;
-        document.onmousemove = dragElement;
-        topCharacterZIndex++;
-        characterElem.style['z-index'] = topCharacterZIndex;
+        document.getElementById('music').src = "https://www.youtube.com/embed/" + youtubeId + "?autoplay=1&t=0";
     }
 
-    const dragElement = function(e) {
-        e.preventDefault();
-        // calculate the new cursor position:
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        characterElem.style.left = (characterElem.offsetLeft - pos1) + "px";
-        characterElem.style.top = (characterElem.offsetTop - pos2) + "px";
-    }
+})();
 
-    const stopDragging = function() {
-        document.onmouseup = null;
-        document.onmousemove = null;
-    }
-
-    characterElem.addEventListener("mousedown", startDragging);
-}
-
-function hurtSelected() {
-    Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
-        characterElem.classList.add("hurt");
-    });
-}
-
-function killSelected() {
-    Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
-        characterElem.classList.remove("hurt");
-        characterElem.classList.add("dead");
-    });
-}
-
-function playMusic(youtubeId) {
-    if (Array.isArray(youtubeId)) {
-        youtubeId = youtubeId[Math.floor(Math.random() * youtubeId.length)];
-    }
-    document.getElementById('music').src = "https://www.youtube.com/embed/" + youtubeId + "?autoplay=1&t=0";
-}
-
-
-// Do the work
-preloadImages();
-prepareAreaControls();
-prepareKeyboardShortcuts();
-changeImage(7);
-prepareMusicControls();
-makeCharactersDeselectable();
-// playMusic(music.intro);
+Controller.boot();
