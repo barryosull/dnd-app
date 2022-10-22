@@ -44,4 +44,6 @@ Better maps:
 Todo:
 [x] Add Phandalin
 [x] Add characters at mouse position
-[ ] Add dungeon
+[x] Add redbrand hideout
+[x] Scale characters up and down
+[ ] Drag all characters

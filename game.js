@@ -14,6 +14,28 @@ const locations = [
     'maps/cave-7.png',
     'maps/cave-8.png',
     'maps/phandalin.jpg',
+    'maps/barthens.webp',
+    'maps/alderleaf-farm.png',
+    'maps/minors-exchange.png',
+    'maps/lionshield-closter.jpeg',
+    'maps/shrine-of-luck.jpeg',
+    'maps/edermath-orchard.jpeg',
+    'maps/townmasters-hall.jpeg',
+    'maps/sleeping-giant.webp',
+    'maps/sleeping-giant-map.jpeg',
+    'maps/tresendar-manor.jpeg',
+    'maps/redbrand-1.png',
+    'maps/redbrand-2.png',
+    'maps/redbrand-3.png',
+    'maps/redbrand-4.png',
+    'maps/redbrand-5.png',
+    'maps/redbrand-6.png',
+    'maps/redbrand-7.png',
+    'maps/redbrand-8.png',
+    'maps/redbrand-9.png',
+    'maps/redbrand-10.png',
+    'maps/redbrand-11.png',
+    'maps/redbrand-12.png',
 ];
 
 const music = {
@@ -66,17 +88,35 @@ const Controller = new (function() {
                 Actions.populatePlayers(mousePos);
             }
             if (e.key === 'g') {
-                Actions.addGoblin(mousePos);
+                Actions.addEnemy('goblin.png', mousePos);
             }
             if (e.key === 'b') {
-                Actions.addBugbear(mousePos);
+                Actions.addEnemy('bugbear.png', mousePos);
+            }
+            if (e.key === 'w') {
+                Actions.addEnemy('wolf.png', mousePos);
+            }
+            if (e.key === 'r') {
+                Actions.addEnemy('redbrand.jpeg', mousePos);
             }
             if (e.key === 's') {
                 Actions.addSildar(mousePos);
             }
-            if (e.key === 'w') {
-                Actions.addWolf(mousePos);
+
+            if (e.key === 'n') {
+                Actions.addEnemy('nothic.png', mousePos);
             }
+            if (e.key === 'i') {
+                Actions.addEnemy('iarno.png', mousePos);
+            }
+
+            if (e.key === '[') {
+                Renderer.scaleCharactersDown();
+            }
+            if (e.key === ']') {
+                Renderer.scaleCharactersUp();
+            }
+
             if (e.key === 'c') {
                 Actions.clearCharacters();
             }
@@ -108,20 +148,8 @@ const Controller = new (function() {
      */
     this.addCharacter = function (image, type, position) {
 
-        const charactersElem = document.getElementById('characters');
-
         ++characterId;
-
-        const charRadius = 35;
-
-        const characterElem = document.createElement("img");
-        characterElem.id = 'character_' + characterId;
-        characterElem.className = "character "+type;
-        characterElem.src = 'images/characters/' + image;
-        characterElem.style.left = (position.x - charRadius) + 'px';
-        characterElem.style.top = (position.y - charRadius) + 'px';
-
-        charactersElem.appendChild(characterElem);
+        const characterElem = Renderer.drawCharacter(characterId, type, image, position)
 
         this.makeSelectable(characterElem);
         this.makeDraggable(characterElem);
@@ -131,11 +159,6 @@ const Controller = new (function() {
 
     this.makeCharactersDeselectable = function() {
         document.addEventListener("click", deselectCharacters);
-    }
-
-
-    function dragstartHandler(ev) {
-        //ev.dataTransfer.setData("text/plain", ev.target.id);
     }
 
     this.makeSelectable = function(characterElem) {
@@ -250,6 +273,45 @@ const Renderer = new (function() {
             preloadedImages[i].src = 'images/' + location;
         });
     }
+
+    let characterRadius = 35;
+
+    this.drawCharacter = function(characterId, type, image, position) {
+        const charactersElem = document.getElementById('characters');
+
+        const characterElem = document.createElement("img");
+        characterElem.id = 'character_' + characterId;
+        characterElem.className = "character "+type;
+        characterElem.src = 'images/characters/' + image;
+        characterElem.style.left = (position.x - characterRadius) + 'px';
+        characterElem.style.top = (position.y - characterRadius) + 'px';
+        characterElem.style.width = (characterRadius * 2) + 'px';
+        characterElem.style.height = (characterRadius * 2) + 'px';
+        characterElem.style['border-radius'] = characterRadius + 'px';
+
+        charactersElem.appendChild(characterElem);
+
+        return characterElem;
+    }
+
+    this.scaleCharactersUp = function() {
+        characterRadius += 5;
+        Array.from(document.getElementsByClassName('character')).forEach(characterElem => {
+            characterElem.style.width = (characterRadius * 2) + 'px';
+            characterElem.style.height = (characterRadius * 2) + 'px';
+            characterElem.style['border-radius'] = characterRadius + 'px';
+        });
+    }
+
+    this.scaleCharactersDown = function() {
+        characterRadius -= 5;
+        Array.from(document.getElementsByClassName('character')).forEach(characterElem => {
+            characterElem.style.width = (characterRadius * 2) + 'px';
+            characterElem.style.height = (characterRadius * 2) + 'px';
+            characterElem.style['border-radius'] = characterRadius + 'px';
+        });
+    }
+
 })();
 
 const Actions = new (function(){
@@ -266,27 +328,12 @@ const Actions = new (function(){
     };
 
     /**
+     * @param {string} type
      * @param {Position} position
      */
-    this.addGoblin = function(position) {
-        const goblin = Controller.addCharacter('goblin.png', 'enemy', position);
-        characters.push(goblin);
-    }
-
-    /**
-     * @param {Position} position
-     */
-    this.addBugbear = function(position) {
-        const bugbear = Controller.addCharacter('bugbear.png', 'enemy', position);
-        characters.push(bugbear);
-    }
-
-    /**
-     * @param {Position} position
-     */
-    this.addWolf = function(position) {
-        const wolf = Controller.addCharacter('wolf.png', 'enemy', position);
-        characters.push(wolf);
+    this.addEnemy = function(type, position) {
+        const enemy = Controller.addCharacter(type, 'enemy', position);
+        characters.push(enemy);
     }
 
     /**
