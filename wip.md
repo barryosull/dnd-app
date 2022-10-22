@@ -41,4 +41,7 @@ Better maps:
     - CSS makes this very easy
     - Can have a single scale for grid, just make it scale to the same level and offset
 
-
+Todo:
+[x] Add Phandalin
+[x] Add characters at mouse position
+[ ] Add dungeon

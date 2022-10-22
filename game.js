@@ -16,12 +16,6 @@ const locations = [
     'maps/phandalin.jpg',
 ];
 
-const players = [
-    'characters/fighter.png',
-    'characters/wizard.png',
-    'characters/cleric.png',
-];
-
 const music = {
     intro: 'XbS3tPO9sUs',
     forest: '6Em9tLXbhfo',
@@ -57,27 +51,34 @@ const Controller = new (function() {
         }
     }
 
+    let mousePos;
+    this.trackMousePosition = function() {
+        document.addEventListener('mousemove', (e) => {
+            mousePos = new Position(e.clientX, e.clientY);
+        })
+    }
+
     this.prepareKeyboardShortcuts = function() {
         function keyDown(e) {
             e = e || window.event;
 
             if (e.key === 'p') {
-                Actions.populatePlayers();
+                Actions.populatePlayers(mousePos);
             }
             if (e.key === 'g') {
-                Actions.addGoblin();
+                Actions.addGoblin(mousePos);
             }
             if (e.key === 'b') {
-                Actions.addBugbear();
+                Actions.addBugbear(mousePos);
             }
             if (e.key === 's') {
-                Actions.addSildar();
+                Actions.addSildar(mousePos);
             }
             if (e.key === 'w') {
-                Actions.addWolf();
+                Actions.addWolf(mousePos);
             }
             if (e.key === 'c') {
-                Actions.clearNpcs();
+                Actions.clearCharacters();
             }
             if (e.key === 'h') {
                 Actions.hurtSelected();
@@ -99,26 +100,26 @@ const Controller = new (function() {
 
     let characterId = 0;
 
-    this.addCharacter = function (image, type, batchSize, batchPosition) {
-
-        batchSize = batchSize ?? 1;
-        batchPosition = batchPosition ?? 0;
+    /**
+     * @param {string} image
+     * @param {string} type
+     * @param {Position} position
+     * @returns {HTMLImageElement}
+     */
+    this.addCharacter = function (image, type, position) {
 
         const charactersElem = document.getElementById('characters');
 
         ++characterId;
 
+        const charRadius = 35;
+
         const characterElem = document.createElement("img");
         characterElem.id = 'character_' + characterId;
         characterElem.className = "character "+type;
         characterElem.src = 'images/characters/' + image;
-
-        const startX = ((batchSize-1)/2) * -80;
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        const offsetX = batchPosition * 80;
-        characterElem.style.left = (startX + (centerX - 35) + offsetX) + 'px';
-        characterElem.style.top = (centerY - 35) + 'px';
+        characterElem.style.left = (position.x - charRadius) + 'px';
+        characterElem.style.top = (position.y - charRadius) + 'px';
 
         charactersElem.appendChild(characterElem);
 
@@ -189,10 +190,14 @@ const Controller = new (function() {
     }
 
     this.boot = function() {
+
+        mousePos = new Position(200, 200);
+
         this.prepareAreaControls();
         this.prepareKeyboardShortcuts();
         this.prepareMusicControls();
         this.makeCharactersDeselectable();
+        this.trackMousePosition();
         Renderer.preloadImages();
         Renderer.changeImage(0);
     }
@@ -249,34 +254,51 @@ const Renderer = new (function() {
 
 const Actions = new (function(){
 
-    const npcs = [];
+    const characters = [];
 
-    this.populatePlayers = function() {
-        players.forEach((player, i) =>  Controller.addCharacter(player, 'player', players.length, i));
+    /**
+     * @param {Position} position
+     */
+    this.populatePlayers = function(position) {
+        characters.push(Controller.addCharacter('cleric.png', 'player', position.shiftLeft(100)));
+        characters.push(Controller.addCharacter('fighter.png', 'player', position));
+        characters.push(Controller.addCharacter('wizard.png', 'player', position.shiftRight(100)));
     };
 
-    this.addGoblin = function() {
-        const goblin = Controller.addCharacter('goblin.png', 'enemy');
-        npcs.push(goblin);
+    /**
+     * @param {Position} position
+     */
+    this.addGoblin = function(position) {
+        const goblin = Controller.addCharacter('goblin.png', 'enemy', position);
+        characters.push(goblin);
     }
 
-    this.addBugbear = function() {
-        const bugbear = Controller.addCharacter('bugbear.png', 'enemy');
-        npcs.push(bugbear);
+    /**
+     * @param {Position} position
+     */
+    this.addBugbear = function(position) {
+        const bugbear = Controller.addCharacter('bugbear.png', 'enemy', position);
+        characters.push(bugbear);
     }
 
-    this.addWolf = function() {
-        const wolf = Controller.addCharacter('wolf.png', 'enemy');
-        npcs.push(wolf);
+    /**
+     * @param {Position} position
+     */
+    this.addWolf = function(position) {
+        const wolf = Controller.addCharacter('wolf.png', 'enemy', position);
+        characters.push(wolf);
     }
 
-    this.addSildar = function() {
-        const sildar = Controller.addCharacter('sildar.png', 'npc');
-        npcs.push(sildar);
+    /**
+     * @param {Position} position
+     */
+    this.addSildar = function(position) {
+        const sildar = Controller.addCharacter('sildar.png', 'npc', position);
+        characters.push(sildar);
     }
 
-    this.clearNpcs = function() {
-        npcs.forEach(npc => npc.remove());
+    this.clearCharacters = function() {
+        characters.forEach(npc => npc.remove());
     }
 
     this.hurtSelected = function() {
@@ -300,5 +322,34 @@ const Actions = new (function(){
     }
 
 })();
+
+class Position {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    /**
+     * @param {int} amount
+     * @returns {Position}
+     */
+    shiftLeft(amount) {
+        return new Position(
+            this.x - amount,
+            this.y
+        )
+    }
+
+    /**
+     * @param {int} amount
+     * @returns {Position}
+     */
+    shiftRight(amount) {
+        return new Position(
+            this.x + amount,
+            this.y
+        )
+    }
+}
 
 Controller.boot();
