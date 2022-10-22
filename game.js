@@ -60,6 +60,32 @@ const Controller = new (function() {
         selectElem.onchange = function() {
             Renderer.changeImage(parseInt(this.value));
         }
+
+        document.addEventListener('dblclick', e => {
+            const locationElem = document.getElementById('location');
+            const backgroundElem = document.getElementById('background');
+            const isZoomingIn = locationElem.style.width !== '200%';
+
+            function zoomIn() {
+                backgroundElem.style.display = 'none';
+                locationElem.style.width = '200%';
+                locationElem.style.height = '200%';
+                locationElem.style.position = 'relative';
+            }
+
+            function zoomOut() {
+                backgroundElem.style.display = 'block';
+                locationElem.style.width = '100%';
+                locationElem.style.height = '100%';
+                locationElem.style.position = 'fixed';
+            }
+
+            if (isZoomingIn) {
+                zoomIn();
+                return;
+            }
+            zoomOut();
+        });
     }
 
     this.prepareMusicControls = function() {
@@ -311,6 +337,8 @@ const Renderer = new (function() {
             characterElem.style['border-radius'] = characterRadius + 'px';
         });
     }
+
+
 
 })();
 

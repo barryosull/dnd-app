@@ -46,4 +46,7 @@ Todo:
 [x] Add characters at mouse position
 [x] Add redbrand hideout
 [x] Scale characters up and down
+[x] Double click to zoom in
 [ ] Drag all characters
+[ ] Print character ID in console
+[ ] Print location notes in console
