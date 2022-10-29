@@ -1,49 +1,43 @@
 
 const locations = [
     'transitions/title.jpeg',
-    'maps/world.jpg',
+    'locations/world.jpg',
     'transitions/journey.jpeg',
-    'maps/road.webp',
+    'locations/road.webp',
     'transitions/trail.jpeg',
-    'maps/cave-1.png',
-    'maps/cave-2.png',
-    'maps/cave-3.png',
-    'maps/cave-4.png',
-    'maps/cave-5.png',
-    'maps/cave-6.png',
-    'maps/cave-7.png',
-    'maps/cave-8.png',
-    'maps/phandalin.jpg',
-    'maps/barthens.webp',
-    'maps/alderleaf-farm.png',
-    'maps/minors-exchange.png',
-    'maps/lionshield-closter.jpeg',
-    'maps/shrine-of-luck.jpeg',
-    'maps/edermath-orchard.jpeg',
-    'maps/townmasters-hall.jpeg',
-    'maps/sleeping-giant.webp',
-    'maps/sleeping-giant-map.jpeg',
-    'maps/tresendar-manor.jpeg',
-    'maps/redbrand-1.png',
-    'maps/redbrand-2.png',
-    'maps/redbrand-3.png',
-    'maps/redbrand-4.png',
-    'maps/redbrand-5.png',
-    'maps/redbrand-6.png',
-    'maps/redbrand-7.png',
-    'maps/redbrand-8.png',
-    'maps/redbrand-9.png',
-    'maps/redbrand-10.png',
-    'maps/redbrand-11.png',
-    'maps/redbrand-12.png',
+    'locations/cave-1.png',
+    'locations/cave-2.png',
+    'locations/cave-3.png',
+    'locations/cave-4.png',
+    'locations/cave-5.png',
+    'locations/cave-6.png',
+    'locations/cave-7.png',
+    'locations/cave-8.png',
+    'locations/phandalin.jpg',
+    'locations/barthens.webp',
+    'locations/alderleaf-farm.png',
+    'locations/minors-exchange.png',
+    'locations/lionshield-closter.jpeg',
+    'locations/shrine-of-luck.jpeg',
+    'locations/edermath-orchard.jpeg',
+    'locations/townmasters-hall.jpeg',
+    'locations/sleeping-giant.webp',
+    'locations/sleeping-giant-map.jpeg',
+    'locations/tresendar-manor.jpeg',
+    'locations/redbrand-courtyard.jpeg',
+    'locations/redbrand-1.png',
+    'locations/redbrand-2.png',
+    'locations/redbrand-3.png',
+    'locations/redbrand-4.png',
+    'locations/redbrand-5.png',
+    'locations/redbrand-6.png',
+    'locations/redbrand-7.png',
+    'locations/redbrand-8.png',
+    'locations/redbrand-9.png',
+    'locations/redbrand-10.png',
+    'locations/redbrand-11.png',
+    'locations/redbrand-12.png',
 ];
-
-const music = {
-    intro: 'XbS3tPO9sUs',
-    forest: '6Em9tLXbhfo',
-    cave: 'E72yDpAfrgY',
-    combat: ['8Q7cioftmKs', 'H8n7K3jABhI', 'fq8OSrIUST4'],
-};
 
 const Controller = new (function() {
     ///////////////////////////////////
@@ -86,17 +80,6 @@ const Controller = new (function() {
             }
             zoomOut();
         });
-    }
-
-    this.prepareMusicControls = function() {
-        let selectElem = document.getElementById('music-controls');
-        for (var key in music) {
-            const optionHtml = '<option value="' + key + '">' + key + '</option>';
-            selectElem.innerHTML += optionHtml;
-        }
-        selectElem.onchange = function() {
-            Controller.playMusic(music[this.value]);
-        }
     }
 
     let mousePos;
@@ -149,6 +132,9 @@ const Controller = new (function() {
             if (e.key === 'h') {
                 Actions.hurtSelected();
             }
+            if (e.key === 'H') {
+                Actions.healSelected();
+            }
             if (e.key === 'd') {
                 Actions.killSelected();
             }
@@ -179,6 +165,7 @@ const Controller = new (function() {
 
         this.makeSelectable(characterElem);
         this.makeDraggable(characterElem);
+        this.makeHoverable(characterElem);
 
         return characterElem;
     }
@@ -238,13 +225,23 @@ const Controller = new (function() {
         characterElem.addEventListener("mousedown", startDragging);
     }
 
+    this.makeHoverable = function(characterElem) {
+        characterElem.addEventListener("mouseover", e => {
+            let id = characterElem.attributes['data-enemy-id'];
+            if (!id) {
+                return;
+            }
+            console.clear();
+            console.log('Enemy ID: ' + id);
+        });
+    }
+
     this.boot = function() {
 
         mousePos = new Position(200, 200);
 
         this.prepareAreaControls();
         this.prepareKeyboardShortcuts();
-        this.prepareMusicControls();
         this.makeCharactersDeselectable();
         this.trackMousePosition();
         Renderer.preloadImages();
@@ -344,7 +341,8 @@ const Renderer = new (function() {
 
 const Actions = new (function(){
 
-    const characters = [];
+    let characters = [];
+    let enemyCountByType = {};
 
     /**
      * @param {Position} position
@@ -361,6 +359,9 @@ const Actions = new (function(){
      */
     this.addEnemy = function(type, position) {
         const enemy = Controller.addCharacter(type, 'enemy', position);
+        enemyCountByType[type] ??= 0;
+        enemyCountByType[type]++;
+        enemy.attributes['data-enemy-id'] = enemyCountByType[type];
         characters.push(enemy);
     }
 
@@ -374,10 +375,20 @@ const Actions = new (function(){
 
     this.clearCharacters = function() {
         characters.forEach(npc => npc.remove());
+        characters = [];
+        enemyCountByType = {};
+    }
+
+    this.healSelected = function() {
+        Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
+            characterElem.classList.remove("hurt");
+            characterElem.classList.remove("dead");
+        });
     }
 
     this.hurtSelected = function() {
         Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
+            characterElem.classList.remove("dead");
             characterElem.classList.add("hurt");
         });
     }
@@ -388,14 +399,6 @@ const Actions = new (function(){
             characterElem.classList.add("dead");
         });
     }
-
-    this.playMusic = function(youtubeId) {
-        if (Array.isArray(youtubeId)) {
-            youtubeId = youtubeId[Math.floor(Math.random() * youtubeId.length)];
-        }
-        document.getElementById('music').src = "https://www.youtube.com/embed/" + youtubeId + "?autoplay=1&t=0";
-    }
-
 })();
 
 class Position {

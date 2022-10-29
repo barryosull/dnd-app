@@ -47,6 +47,9 @@ Todo:
 [x] Add redbrand hideout
 [x] Scale characters up and down
 [x] Double click to zoom in
-[ ] Drag all characters
 [ ] Print character ID in console
+[ ] Drag all characters
 [ ] Print location notes in console
+
+Tools:
+- https://www.campfirewriting.com/pricing
