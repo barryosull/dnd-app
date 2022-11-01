@@ -1,59 +1,109 @@
 
+class Game {
+    constructor(locations) {
+        this.locatons = locations;
+    }
+}
+
+class Backdrop {
+    /**
+     * @param {string} image
+     */
+    constructor(image) {
+        this.image = image;
+    }
+}
+
+class Map {
+    /**
+     * @param {string} image
+     */
+    constructor(image) {
+        this.image = image;
+    }
+}
+
+class Level {
+    /**
+     * @param {Room[]} rooms
+     */
+    constructor(rooms) {
+        this.rooms = rooms;
+    }
+}
+
+class Room {
+    /**
+     * @param {string} image
+     */
+    constructor(image) {
+        this.image = image;
+    }
+}
+
+
+////////////////////////////////////////////////
+// Boot the game
+////////////////////////////////////////////////
+
 const locations = [
-    'transitions/title.jpeg',
-    'locations/world.jpg',
-    'transitions/journey.jpeg',
-    'locations/road.webp',
-    'transitions/trail.jpeg',
-    'locations/cave-1.png',
-    'locations/cave-2.png',
-    'locations/cave-3.png',
-    'locations/cave-4.png',
-    'locations/cave-5.png',
-    'locations/cave-6.png',
-    'locations/cave-7.png',
-    'locations/cave-8.png',
-    'locations/phandalin.jpg',
-    'locations/barthens.webp',
-    'locations/alderleaf-farm.png',
-    'locations/minors-exchange.png',
-    'locations/lionshield-closter.jpeg',
-    'locations/shrine-of-luck.jpeg',
-    'locations/edermath-orchard.jpeg',
-    'locations/townmasters-hall.jpeg',
-    'locations/sleeping-giant.webp',
-    'locations/sleeping-giant-map.jpeg',
-    'locations/tresendar-manor.jpeg',
-    'locations/redbrand-courtyard.jpeg',
-    'locations/redbrand-1.png',
-    'locations/redbrand-2.png',
-    'locations/redbrand-3.png',
-    'locations/redbrand-4.png',
-    'locations/redbrand-5.png',
-    'locations/redbrand-6.png',
-    'locations/redbrand-7.png',
-    'locations/redbrand-8.png',
-    'locations/redbrand-9.png',
-    'locations/redbrand-10.png',
-    'locations/redbrand-11.png',
-    'locations/redbrand-12.png',
+    new Backdrop('transitions/title.jpeg'),
+    new Map('locations/world.jpg'),
+    new Backdrop('transitions/journey.jpeg'),
+    new Map('locations/road.webp'),
+    new Backdrop('transitions/trail.jpeg'),
+    new Level([
+        new Room('locations/cave-1.png'),
+        new Room('locations/cave-2.png'),
+        new Room('locations/cave-3.png'),
+        new Room('locations/cave-4.png'),
+        new Room('locations/cave-5.png'),
+        new Room('locations/cave-6.png'),
+        new Room('locations/cave-7.png'),
+        new Room('locations/cave-8.png'),
+    ]),
+    new Map('locations/phandalin.jpg'),
+    new Backdrop('locations/stonehill-inn.jpeg'),
+    new Backdrop( 'locations/barthens.webp'),
+    new Backdrop( 'locations/alderleaf-farm.png'),
+    new Backdrop( 'locations/minors-exchange.png'),
+    new Backdrop( 'locations/lionshield-closter.jpeg'),
+    new Backdrop( 'locations/shop-weapons.jpg'),
+    new Backdrop('locations/shop-armour.jpg'),
+    new Backdrop('locations/shop-gear.jpg'),
+    new Backdrop('locations/shrine-of-luck.jpeg'),
+    new Backdrop( 'locations/edermath-orchard.jpeg'),
+    new Backdrop('locations/townmasters-hall.jpeg'),
+    new Backdrop('locations/sleeping-giant.webp'),
+    new Map('locations/sleeping-giant-map.jpeg'),
+    new Backdrop('locations/tresendar-manor.jpeg'),
+    new Backdrop('locations/redbrand-courtyard.jpeg'),
+    new Level([
+        new Room('locations/redbrand-1.png'),
+        new Room('locations/redbrand-2.png'),
+        new Room('locations/redbrand-3.png'),
+        new Room('locations/redbrand-4.png'),
+        new Room('locations/redbrand-5.png'),
+        new Room('locations/redbrand-6.png'),
+        new Room('locations/redbrand-7.png'),
+        new Room('locations/redbrand-8.png'),
+        new Room('locations/redbrand-9.png'),
+        new Room('locations/redbrand-10.png'),
+        new Room('locations/redbrand-11.png'),
+        new Room('locations/redbrand-12.png'),
+    ]),
+    new Map('locations/forest.jpeg'),
 ];
+
+const game = new Game(locations);
+
 
 const Controller = new (function() {
     ///////////////////////////////////
     // Methods
     ///////////////////////////////////
     this.prepareAreaControls = function() {
-        let selectElem = document.getElementById('area');
-        for (var i in locations) {
-            const imageTitle = locations[i].split('.')[0];
-            const optionHtml = '<option value="' + i + '">' + imageTitle + '</option>';
-            selectElem.innerHTML += optionHtml;
-        }
-
-        selectElem.onchange = function() {
-            Renderer.changeImage(parseInt(this.value));
-        }
+       Renderer.renderLocationSelect();
 
         document.addEventListener('dblclick', e => {
             const locationElem = document.getElementById('location');
@@ -245,7 +295,7 @@ const Controller = new (function() {
         this.makeCharactersDeselectable();
         this.trackMousePosition();
         Renderer.preloadImages();
-        Renderer.changeImage(0);
+        Renderer.changeLocation(0);
     }
 
     ///////////////////////////////////
@@ -255,14 +305,45 @@ const Controller = new (function() {
 
 const Renderer = new (function() {
 
-    let currImageIndex = 0;
+    let locations = [];
+    game.locatons.forEach(location => {
+        if (location instanceof Backdrop || location instanceof Map) {
+            locations.push(location.image);
+        }
+        if (location instanceof Level) {
+            location.rooms.forEach(room => {
+                locations.push(room.image);
+            });
+        }
+    });
+
+    let currImageIndex = null;
+
+    this.renderLocationSelect = function() {
+
+        let selectElem = document.getElementById('area');
+
+        function addOptions(id, title) {
+            const optionHtml = '<option value="' + id + '">' + title + '</option>';
+            selectElem.innerHTML += optionHtml;
+        }
+
+        locations.forEach((location, index) => {
+            const title = location.split('.')[0];
+            addOptions(index, title);
+        });
+
+        selectElem.onchange = function() {
+            Renderer.changeLocation(parseInt(this.value));
+        }
+    }
 
     this.imageForward = function() {
         const nextImageIndex = currImageIndex + 1;
         if (!locations[nextImageIndex]) {
             return;
         }
-        this.changeImage(nextImageIndex);
+        this.changeLocation(nextImageIndex);
     };
 
     this.imageBackward = function() {
@@ -270,26 +351,25 @@ const Renderer = new (function() {
         if (!locations[nextImageIndex]) {
             return;
         }
-        this.changeImage(nextImageIndex);
+        this.changeLocation(nextImageIndex);
     };
 
     const backgroundElem = document.getElementById('background');
     const locationElem = document.getElementById('location');
 
-    this.changeImage = function(imageIndex) {
+    this.changeLocation = function(imageIndex) {
         let selectElem = document.getElementById('area');
         selectElem.value = imageIndex;
 
         currImageIndex = imageIndex;
-        const image = locations[imageIndex];
 
+        const image = locations[imageIndex];
 
         backgroundElem.style['background-image'] = 'url("images/' + image + ' ")';
         locationElem.style['background-image'] = 'url("images/' + image + ' ")';
     };
 
     let preloadedImages = [];
-
     this.preloadImages = function() {
         locations.forEach((location, i) => {
             preloadedImages[i] = new Image();
@@ -334,9 +414,6 @@ const Renderer = new (function() {
             characterElem.style['border-radius'] = characterRadius + 'px';
         });
     }
-
-
-
 })();
 
 const Actions = new (function(){
@@ -429,5 +506,6 @@ class Position {
         )
     }
 }
+
 
 Controller.boot();

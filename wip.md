@@ -41,15 +41,23 @@ Better maps:
     - CSS makes this very easy
     - Can have a single scale for grid, just make it scale to the same level and offset
 
+I'm thinking a full refactor is needed, separate the model from the UI and implementation.
+
+
+
 Todo:
 [x] Add Phandalin
 [x] Add characters at mouse position
 [x] Add redbrand hideout
 [x] Scale characters up and down
 [x] Double click to zoom in
-[ ] Print character ID in console
+[x] Print character ID in console
 [ ] Drag all characters
+[ ] Scale characters with map
+[ ] Moving map moves players
 [ ] Print location notes in console
+
+
 
 Tools:
 - https://www.campfirewriting.com/pricing
