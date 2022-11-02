@@ -93,6 +93,9 @@ const locations = [
         new Room('locations/redbrand-12.png'),
     ]),
     new Map('locations/forest.jpeg'),
+    new Map('locations/thundertree.jpg'),
+    new Map('locations/banshee.webp'),
+    new Map('locations/old-owl-well.jpeg')
 ];
 
 const game = new Game(locations);
@@ -143,32 +146,55 @@ const Controller = new (function() {
         function keyDown(e) {
             e = e || window.event;
 
+            // Players
             if (e.key === 'p') {
                 Actions.populatePlayers(mousePos);
+            }
+
+            // NPCs
+            if (e.key === 's') {
+                Actions.addNpc('sildar.png', mousePos);
+            }
+            if (e.key === 'R') {
+                Actions.addNpc('reidoth.png', mousePos);
+            }
+
+            // Enemies
+            if (e.key === 'b') {
+                Actions.addEnemy('bugbear.png', mousePos);
+            }
+            if (e.key === 'B') {
+                Actions.addEnemy('banshee.png', mousePos);
+            }
+            if (e.key === 'd') {
+                Actions.addEnemy('dragon.png', mousePos, 'gargantuan');
             }
             if (e.key === 'g') {
                 Actions.addEnemy('goblin.png', mousePos);
             }
-            if (e.key === 'b') {
-                Actions.addEnemy('bugbear.png', mousePos);
+            if (e.key === 'i') {
+                Actions.addEnemy('iarno.png', mousePos);
             }
-            if (e.key === 'w') {
-                Actions.addEnemy('wolf.png', mousePos);
+            if (e.key === 'n') {
+                Actions.addEnemy('nothic.png', mousePos);
             }
             if (e.key === 'r') {
                 Actions.addEnemy('redbrand.jpeg', mousePos);
             }
-            if (e.key === 's') {
-                Actions.addSildar(mousePos);
+            if (e.key === 'S') {
+                Actions.addEnemy('spider.png', mousePos, 'large');
+            }
+            if (e.key === 't') {
+                Actions.addEnemy('twig-blight.png', mousePos, 'small');
+            }
+            if (e.key === 'w') {
+                Actions.addEnemy('wolf.png', mousePos);
+            }
+            if (e.key === 'z') {
+                Actions.addEnemy('zombie.png', mousePos);
             }
 
-            if (e.key === 'n') {
-                Actions.addEnemy('nothic.png', mousePos);
-            }
-            if (e.key === 'i') {
-                Actions.addEnemy('iarno.png', mousePos);
-            }
-
+            // Character scaling
             if (e.key === '[') {
                 Renderer.scaleCharactersDown();
             }
@@ -189,6 +215,7 @@ const Controller = new (function() {
                 Actions.killSelected();
             }
 
+            // Location navigation
             if (e.code === 'ArrowLeft') {
                 Renderer.imageBackward();
             }
@@ -206,12 +233,15 @@ const Controller = new (function() {
      * @param {string} image
      * @param {string} type
      * @param {Position} position
+     * @param {null|string} [size]
      * @returns {HTMLImageElement}
      */
-    this.addCharacter = function (image, type, position) {
+    this.addCharacter = function (image, type, position, size) {
+
+        size = size ?? 'medium';
 
         ++characterId;
-        const characterElem = Renderer.drawCharacter(characterId, type, image, position)
+        const characterElem = Renderer.drawCharacter(characterId, type, image, position, size)
 
         this.makeSelectable(characterElem);
         this.makeDraggable(characterElem);
@@ -377,20 +407,20 @@ const Renderer = new (function() {
         });
     }
 
-    let characterRadius = 35;
+    let characterScale = 1;
 
-    this.drawCharacter = function(characterId, type, image, position) {
+    this.drawCharacter = function(characterId, type, image, position, size) {
         const charactersElem = document.getElementById('characters');
+
+        const medianCharRadius = 35;
 
         const characterElem = document.createElement("img");
         characterElem.id = 'character_' + characterId;
-        characterElem.className = "character "+type;
+        characterElem.className = "character "+ type + " " + size;
         characterElem.src = 'images/characters/' + image;
-        characterElem.style.left = (position.x - characterRadius) + 'px';
-        characterElem.style.top = (position.y - characterRadius) + 'px';
-        characterElem.style.width = (characterRadius * 2) + 'px';
-        characterElem.style.height = (characterRadius * 2) + 'px';
-        characterElem.style['border-radius'] = characterRadius + 'px';
+        characterElem.style.left = (position.x - medianCharRadius) + 'px';
+        characterElem.style.top = (position.y - medianCharRadius) + 'px';
+        characterElem.style.transform = "scale(" + characterScale + ")";
 
         charactersElem.appendChild(characterElem);
 
@@ -398,20 +428,16 @@ const Renderer = new (function() {
     }
 
     this.scaleCharactersUp = function() {
-        characterRadius += 5;
+        characterScale += 0.2;
         Array.from(document.getElementsByClassName('character')).forEach(characterElem => {
-            characterElem.style.width = (characterRadius * 2) + 'px';
-            characterElem.style.height = (characterRadius * 2) + 'px';
-            characterElem.style['border-radius'] = characterRadius + 'px';
+            characterElem.style.transform = "scale(" + characterScale + ")";
         });
     }
 
     this.scaleCharactersDown = function() {
-        characterRadius -= 5;
+        characterScale -= 0.2;
         Array.from(document.getElementsByClassName('character')).forEach(characterElem => {
-            characterElem.style.width = (characterRadius * 2) + 'px';
-            characterElem.style.height = (characterRadius * 2) + 'px';
-            characterElem.style['border-radius'] = characterRadius + 'px';
+            characterElem.style.transform = "scale(" + characterScale + ")";
         });
     }
 })();
@@ -433,9 +459,10 @@ const Actions = new (function(){
     /**
      * @param {string} type
      * @param {Position} position
+     * @param {string} size
      */
-    this.addEnemy = function(type, position) {
-        const enemy = Controller.addCharacter(type, 'enemy', position);
+    this.addEnemy = function(type, position, size) {
+        const enemy = Controller.addCharacter(type, 'enemy', position, size);
         enemyCountByType[type] ??= 0;
         enemyCountByType[type]++;
         enemy.attributes['data-enemy-id'] = enemyCountByType[type];
@@ -443,11 +470,12 @@ const Actions = new (function(){
     }
 
     /**
+     * @param {string} image
      * @param {Position} position
      */
-    this.addSildar = function(position) {
-        const sildar = Controller.addCharacter('sildar.png', 'npc', position);
-        characters.push(sildar);
+    this.addNpc = function(image, position) {
+        const npc = Controller.addCharacter(image, 'npc', position, 'medium');
+        characters.push(npc);
     }
 
     this.clearCharacters = function() {
@@ -506,6 +534,5 @@ class Position {
         )
     }
 }
-
 
 Controller.boot();
