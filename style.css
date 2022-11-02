@@ -19,8 +19,13 @@ body {
     filter: blur(16px);
 }
 
+#background.zoom {
+    display: none;
+}
+
 #location {
     height: 100%;
+    width: 100%;
     position: fixed;
     left: 0;
     right: 0;
@@ -28,6 +33,12 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
+}
+
+#location.zoom {
+    position: relative;
+    transform-origin: 0 0;
+    transform: scale(2);
 }
 
 #music {

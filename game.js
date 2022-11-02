@@ -111,20 +111,16 @@ const Controller = new (function() {
         document.addEventListener('dblclick', e => {
             const locationElem = document.getElementById('location');
             const backgroundElem = document.getElementById('background');
-            const isZoomingIn = locationElem.style.width !== '200%';
+            const isZoomingIn = !backgroundElem.classList.contains('zoom');
 
             function zoomIn() {
-                backgroundElem.style.display = 'none';
-                locationElem.style.width = '200%';
-                locationElem.style.height = '200%';
-                locationElem.style.position = 'relative';
+                backgroundElem.classList.add('zoom');
+                locationElem.classList.add('zoom');
             }
 
             function zoomOut() {
-                backgroundElem.style.display = 'block';
-                locationElem.style.width = '100%';
-                locationElem.style.height = '100%';
-                locationElem.style.position = 'fixed';
+                backgroundElem.classList.remove('zoom');
+                locationElem.classList.remove('zoom');
             }
 
             if (isZoomingIn) {

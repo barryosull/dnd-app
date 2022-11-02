@@ -52,6 +52,10 @@ Todo:
 [x] Scale characters up and down
 [x] Double click to zoom in
 [x] Print character ID in console
+[x] Make locations a class concept
+[x] Add more monster types
+[x] Add monster sizes
+[x] Zoom based on scale transform
 [ ] Drag all characters
 [ ] Scale characters with map
 [ ] Moving map moves players
