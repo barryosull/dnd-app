@@ -56,6 +56,8 @@ Todo:
 [x] Add more monster types
 [x] Add monster sizes
 [x] Zoom based on scale transform
+[ ] Overlay grid ontop of location
+[ ] Store location in URL
 [ ] Drag all characters
 [ ] Scale characters with map
 [ ] Moving map moves players

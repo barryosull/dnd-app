@@ -95,7 +95,19 @@ const locations = [
     new Map('locations/forest.jpeg'),
     new Map('locations/thundertree.jpg'),
     new Map('locations/banshee.webp'),
-    new Map('locations/old-owl-well.jpeg')
+    new Map('locations/old-owl-well.jpeg'),
+    new Level([
+        new Room('locations/cragmaw-castle-1-and-2.png'),
+        new Room('locations/cragmaw-castle-3-and-6.png'),
+        new Room('locations/cragmaw-castle-3-4-and-7.png'),
+        new Room('locations/cragmaw-castle-8-and-9.png'),
+        new Room('locations/cragmaw-castle-5.png'),
+        new Room('locations/cragmaw-castle-10.png'),
+        new Room('locations/cragmaw-castle-11.png'),
+        new Room('locations/cragmaw-castle-12.png'),
+        new Room('locations/cragmaw-castle-13.png'),
+        new Room('locations/cragmaw-castle-14.png'),
+    ]),
 ];
 
 const game = new Game(locations);
@@ -151,8 +163,14 @@ const Controller = new (function() {
             if (e.key === 's') {
                 Actions.addNpc('sildar.png', mousePos);
             }
+            if (e.key === 'G') {
+                Actions.addNpc('garaele.png', mousePos);
+            }
             if (e.key === 'R') {
                 Actions.addNpc('reidoth.png', mousePos);
+            }
+            if (e.key === 'h') {
+                Actions.addNpc('hamun.png', mousePos);
             }
 
             // Enemies
@@ -168,11 +186,20 @@ const Controller = new (function() {
             if (e.key === 'g') {
                 Actions.addEnemy('goblin.png', mousePos);
             }
+            if (e.key === 'H') {
+                Actions.addEnemy('hobgoblin.png', mousePos);
+            }
             if (e.key === 'i') {
                 Actions.addEnemy('iarno.png', mousePos);
             }
             if (e.key === 'n') {
                 Actions.addEnemy('nothic.png', mousePos);
+            }
+            if (e.key === 'o') {
+                Actions.addEnemy('orc.png', mousePos);
+            }
+            if (e.key === 'O') {
+                Actions.addEnemy('owlbear.png', mousePos, 'large');
             }
             if (e.key === 'r') {
                 Actions.addEnemy('redbrand.jpeg', mousePos);
