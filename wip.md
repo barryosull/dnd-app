@@ -43,7 +43,9 @@ Better maps:
 
 I'm thinking a full refactor is needed, separate the model from the UI and implementation.
 
+Moved character div into the location and characters now move with zoom, but they are placed where the zoom isnt, so it's broken. Only way to fix is multiply their position by the coords. Maybe . . . should investigate.
 
+Migrated key bindings so there are different keys based on context.
 
 Todo:
 [x] Add Phandalin
@@ -56,14 +58,12 @@ Todo:
 [x] Add more monster types
 [x] Add monster sizes
 [x] Zoom based on scale transform
-[ ] Overlay grid ontop of location
+[ ] Overlay grid on top of location
 [ ] Store location in URL
 [ ] Drag all characters
 [ ] Scale characters with map
 [ ] Moving map moves players
 [ ] Print location notes in console
-
-
 
 Tools:
 - https://www.campfirewriting.com/pricing

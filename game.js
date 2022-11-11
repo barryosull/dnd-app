@@ -112,38 +112,128 @@ const locations = [
 
 const game = new Game(locations);
 
+const KeysToActions = {
+    characterSelected: function(e) {
+        if (e.key === 'h') {
+            Actions.hurtSelected();
+        }
+        if (e.key === 'H') {
+            Actions.healSelected();
+        }
+        if (e.key === 'd') {
+            Actions.killSelected();
+        }
+    },
+
+    noCharacterSelected: function(e, mousePos) {
+        // Players
+        if (e.key === 'p') {
+            Actions.populatePlayers(mousePos);
+        }
+
+        // NPCs
+        if (e.key === 'B') {
+            Actions.addNpc('banshee.png', mousePos);
+        }
+        if (e.key === 'C') {
+            Actions.addNpc('cultist.png', mousePos);
+        }
+        if (e.key === 'G') {
+            Actions.addNpc('garaele.png', mousePos);
+        }
+        if (e.key === 'h') {
+            Actions.addNpc('hamun.png', mousePos);
+        }
+        if (e.key === 'i') {
+            Actions.addNpc('iarno.png', mousePos);
+        }
+        if (e.key === 'R') {
+            Actions.addNpc('reidoth.png', mousePos);
+        }
+        if (e.key === 's') {
+            Actions.addNpc('sildar.png', mousePos);
+        }
+
+        // Enemies
+        if (e.key === 'b') {
+            Actions.addEnemy('bugbear.png', mousePos);
+        }
+        if (e.key === 'd') {
+            Actions.addEnemy('dragon.png', mousePos, 'gargantuan');
+        }
+        if (e.key === 'g') {
+            Actions.addEnemy('goblin.png', mousePos);
+        }
+        if (e.key === 'H') {
+            Actions.addEnemy('hobgoblin.png', mousePos);
+        }
+
+        if (e.key === 'n') {
+            Actions.addEnemy('nothic.png', mousePos);
+        }
+        if (e.key === 'o') {
+            Actions.addEnemy('orc.png', mousePos);
+        }
+        if (e.key === 'O') {
+            Actions.addEnemy('owlbear.png', mousePos, 'large');
+        }
+        if (e.key === 'r') {
+            Actions.addEnemy('redbrand.jpeg', mousePos);
+        }
+        if (e.key === 'S') {
+            Actions.addEnemy('spider.png', mousePos, 'large');
+        }
+        if (e.key === 't') {
+            Actions.addEnemy('twig-blight.png', mousePos, 'small');
+        }
+        if (e.key === 'w') {
+            Actions.addEnemy('wolf.png', mousePos);
+        }
+        if (e.key === 'z') {
+            Actions.addEnemy('zombie.png', mousePos);
+        }
+
+        if (e.key === 'c') {
+            Actions.clearCharacters();
+        }
+
+        // Character scaling
+        if (e.key === '[') {
+            Renderer.scaleCharactersDown();
+        }
+        if (e.key === ']') {
+            Renderer.scaleCharactersUp();
+        }
+
+        // Zoom
+        if (e.key === '{') {
+            Renderer.zoomOut();
+        }
+        if (e.key === '}') {
+            Renderer.zoomIn();
+        }
+
+        // Location navigation
+        if (e.code === 'ArrowLeft') {
+            Renderer.imageBackward();
+        }
+        if (e.code === 'ArrowRight') {
+            Renderer.imageForward();
+        }
+    }
+};
 
 const Controller = new (function() {
     ///////////////////////////////////
     // Methods
     ///////////////////////////////////
     this.prepareAreaControls = function() {
-       Renderer.renderLocationSelect();
-
-        document.addEventListener('dblclick', e => {
-            const locationElem = document.getElementById('location');
-            const backgroundElem = document.getElementById('background');
-            const isZoomingIn = !backgroundElem.classList.contains('zoom');
-
-            function zoomIn() {
-                backgroundElem.classList.add('zoom');
-                locationElem.classList.add('zoom');
-            }
-
-            function zoomOut() {
-                backgroundElem.classList.remove('zoom');
-                locationElem.classList.remove('zoom');
-            }
-
-            if (isZoomingIn) {
-                zoomIn();
-                return;
-            }
-            zoomOut();
-        });
+        Renderer.renderLocationSelect();
     }
 
     let mousePos;
+    let activeKeysToActions;
+
     this.trackMousePosition = function() {
         document.addEventListener('mousemove', (e) => {
             mousePos = new Position(e.clientX, e.clientY);
@@ -151,100 +241,9 @@ const Controller = new (function() {
     }
 
     this.prepareKeyboardShortcuts = function() {
+        activeKeysToActions = KeysToActions.noCharacterSelected;
         function keyDown(e) {
-            e = e || window.event;
-
-            // Players
-            if (e.key === 'p') {
-                Actions.populatePlayers(mousePos);
-            }
-
-            // NPCs
-            if (e.key === 's') {
-                Actions.addNpc('sildar.png', mousePos);
-            }
-            if (e.key === 'G') {
-                Actions.addNpc('garaele.png', mousePos);
-            }
-            if (e.key === 'R') {
-                Actions.addNpc('reidoth.png', mousePos);
-            }
-            if (e.key === 'h') {
-                Actions.addNpc('hamun.png', mousePos);
-            }
-
-            // Enemies
-            if (e.key === 'b') {
-                Actions.addEnemy('bugbear.png', mousePos);
-            }
-            if (e.key === 'B') {
-                Actions.addEnemy('banshee.png', mousePos);
-            }
-            if (e.key === 'd') {
-                Actions.addEnemy('dragon.png', mousePos, 'gargantuan');
-            }
-            if (e.key === 'g') {
-                Actions.addEnemy('goblin.png', mousePos);
-            }
-            if (e.key === 'H') {
-                Actions.addEnemy('hobgoblin.png', mousePos);
-            }
-            if (e.key === 'i') {
-                Actions.addEnemy('iarno.png', mousePos);
-            }
-            if (e.key === 'n') {
-                Actions.addEnemy('nothic.png', mousePos);
-            }
-            if (e.key === 'o') {
-                Actions.addEnemy('orc.png', mousePos);
-            }
-            if (e.key === 'O') {
-                Actions.addEnemy('owlbear.png', mousePos, 'large');
-            }
-            if (e.key === 'r') {
-                Actions.addEnemy('redbrand.jpeg', mousePos);
-            }
-            if (e.key === 'S') {
-                Actions.addEnemy('spider.png', mousePos, 'large');
-            }
-            if (e.key === 't') {
-                Actions.addEnemy('twig-blight.png', mousePos, 'small');
-            }
-            if (e.key === 'w') {
-                Actions.addEnemy('wolf.png', mousePos);
-            }
-            if (e.key === 'z') {
-                Actions.addEnemy('zombie.png', mousePos);
-            }
-
-            // Character scaling
-            if (e.key === '[') {
-                Renderer.scaleCharactersDown();
-            }
-            if (e.key === ']') {
-                Renderer.scaleCharactersUp();
-            }
-
-            if (e.key === 'c') {
-                Actions.clearCharacters();
-            }
-            if (e.key === 'h') {
-                Actions.hurtSelected();
-            }
-            if (e.key === 'H') {
-                Actions.healSelected();
-            }
-            if (e.key === 'd') {
-                Actions.killSelected();
-            }
-
-            // Location navigation
-            if (e.code === 'ArrowLeft') {
-                Renderer.imageBackward();
-            }
-            if (e.code === 'ArrowRight') {
-                Renderer.imageForward();
-            }
+            activeKeysToActions(e, mousePos);
         }
         document.onkeydown = keyDown;
     }
@@ -282,6 +281,7 @@ const Controller = new (function() {
             event.preventDefault();
             event.stopPropagation();
             characterElem.classList.add("selected");
+            activeKeysToActions = KeysToActions.characterSelected;
         });
     }
 
@@ -289,6 +289,7 @@ const Controller = new (function() {
         Array.from(document.getElementsByClassName('selected')).forEach(characterElem => {
             characterElem.classList.remove("selected");
         });
+        activeKeysToActions = KeysToActions.noCharacterSelected;
     }
 
     let topCharacterZIndex = 1;
@@ -463,6 +464,22 @@ const Renderer = new (function() {
             characterElem.style.transform = "scale(" + characterScale + ")";
         });
     }
+
+    let locationZoom = 1;
+
+    this.zoomIn = function() {
+        locationZoom += 0.2;
+        backgroundElem.classList.add('zoom');
+        locationElem.classList.add('zoom');
+        locationElem.style.transform = "scale(" + locationZoom + ")";
+    }
+
+    this.zoomOut = function() {
+        locationZoom = 1;
+        backgroundElem.classList.remove('zoom');
+        locationElem.classList.remove('zoom');
+        locationElem.style.transform = "scale(" + locationZoom + ")";
+    }
 })();
 
 const Actions = new (function(){
@@ -474,9 +491,12 @@ const Actions = new (function(){
      * @param {Position} position
      */
     this.populatePlayers = function(position) {
-        characters.push(Controller.addCharacter('cleric.png', 'player', position.shiftLeft(100)));
-        characters.push(Controller.addCharacter('fighter.png', 'player', position));
-        characters.push(Controller.addCharacter('wizard.png', 'player', position.shiftRight(100)));
+        const left = position.shiftLeft(35).shiftDown(27);
+        const center = position.shiftUp(27);
+        const right = position.shiftRight(35).shiftDown(27);
+        characters.push(Controller.addCharacter('cleric.png', 'player', left));
+        characters.push(Controller.addCharacter('fighter.png', 'player', center));
+        characters.push(Controller.addCharacter('wizard.png', 'player', right));
     };
 
     /**
@@ -533,6 +553,28 @@ class Position {
     constructor(x, y) {
         this.x = x;
         this.y = y;
+    }
+
+    /**
+     * @param {int} amount
+     * @returns {Position}
+     */
+    shiftUp(amount) {
+        return new Position(
+            this.x,
+            this.y - amount
+        )
+    }
+
+    /**
+     * @param {int} amount
+     * @returns {Position}
+     */
+    shiftDown(amount) {
+        return new Position(
+            this.x,
+            this.y + amount
+        )
     }
 
     /**

@@ -38,7 +38,6 @@ body {
 #location.zoom {
     position: relative;
     transform-origin: 0 0;
-    transform: scale(2);
 }
 
 #music {
